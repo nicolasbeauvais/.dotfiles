@@ -1,0 +1,13 @@
+#
+# Executes commands at logout.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
+
+
+[[ -o INTERACTIVE && -t 2 ]] && {
+
+# Execute code only if STDERR is bound to a TTY.
+
+} >&2
