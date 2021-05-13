@@ -2,5 +2,5 @@
 
 ### Install
 ```bash
-https://raw.githubusercontent.com/nicolasbeauvais/.dotfiles/master/clone.sh | bash
+wget https://raw.githubusercontent.com/nicolasbeauvais/.dotfiles/master/clone.sh | bash
 ```
