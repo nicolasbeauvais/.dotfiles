@@ -47,6 +47,7 @@ path=(
   ~/.local/bin
   ~/.emacs.d/bin
   ~/.node_modules/bin
+  ~/.config/composer/vendor/bin/
   $path
 )
 
