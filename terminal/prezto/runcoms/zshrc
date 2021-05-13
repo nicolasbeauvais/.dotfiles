@@ -16,10 +16,12 @@ alias sgrep='grep -R -n -H -C 5 --exclude-dir={.git,.svn,CVS} '
 alias ls='ls $LS_OPTIONS --color'
 alias ll='ls $LS_OPTIONS -l --color'
 alias l='ls $LS_OPTIONS -lA --color'
+alias ssh="kitty +kitten ssh"
 
 alias -g H='| head'
 alias -g T='| tail'
 alias -g G='| grep'
+
 
 # ls after cd
 function cd() {
