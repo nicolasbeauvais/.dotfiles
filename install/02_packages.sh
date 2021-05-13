@@ -1,3 +1,36 @@
+# Remove unused softwares
+#
+# eog: Eye of Gnome
+# evince: Document viewer
+# simple-scan: Document scanner
+# totem: ideos
+#
+sudo dnf remove -y \
+    eog \
+    evince \
+    gedit \
+    gnome-boxes \
+    gnome-calculator \
+    gnome-calendar \
+    gnome-characters \
+    gnome-clocks \
+    gnome-contacts \
+    gnome-font-viewer \
+    gnome-maps \
+    gnome-online-miners \
+    gnome-photos \
+    gnome-remote-desktop \
+    gnome-shell-extension-background-logo\
+    gnome-tour \
+    gnome-user-share \
+    gnome-video-effects \
+    gnome-weather \
+    ibus-anthy \
+    'libreoffice-*' \
+    rhythmbox \
+    simple-scan \
+    totem
+
 # Add RPM Fusion, free and non-free
 sudo dnf install -y \
 "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
@@ -5,10 +38,6 @@ sudo dnf install -y \
 
 # Add FlatHub to FlatPak
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-# Install 1password RPM
-sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
-sudo sh -c 'echo -e "[1password]\nname=1Password\nbaseurl=https://downloads.1password.com/linux/rpm\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://downloads.1password.com/linux/keys/1password.asc" > /etc/yum.repos.d/1password.repo'
 
 # Install Opera RPM
 sudo rpm --import https://rpm.opera.com/rpmrepo.key
@@ -36,7 +65,7 @@ sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi2021
 sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi-$(rpm -E %fedora)
 
 # Update repository
-sudo dnf update -y
+sudo dnf upgrade --refresh -y
 
 # Install essential programs
 sudo dnf install -y \
@@ -48,30 +77,38 @@ sudo dnf install -y \
      docker-compose \
      emacs \
      ffmpeg \
-     mozilla-fira-sans-fonts \
      gnome-tweak-tool \
+     imagemagick \
      jetbrains-mono-fonts \
+     kitty \
+     kitty-terminfo \
+     mariadb \
+     mariadb-server \
+     mozilla-fira-sans-fonts \
+     nodejs \
      opera-stable \
+     parallel \
      php-8.0.3 \
-     podman \
+     php-gd \
+     php-zip \
+     php-pecl-swoole \
+     policycoreutils-gui \
+     rclone \
+     setroubleshoot \
+     util-linux-user \
      zsh
 
 # Media codecs
-sudo dnf group upgrade --with-optional Multimedia
+sudo dnf group upgrade -y --with-optional Multimedia
 
 # Install FlatPak programs
-flatpak install flathub \
+flatpak install flathub -y \
     com.discordapp.Discord \
+    io.exodus.Exodus \
+    com.jetbrains.PhpStorm \
     org.signal.Signal \
     com.slack.Slack \
     com.spotify.Client
-
-# Configure Docker
-sudo groupadd docker
-sudo usermod -aG docker $USER
-sudo systemctl enable docker
-sudo systemctl start docker
-
 
 # Install Composer
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -79,17 +116,14 @@ php composer-setup.php
 php -r "unlink('composer-setup.php');"
 sudo mv composer.phar /usr/bin/composer
 
-# Configure Opera
-sudo rm /usr/lib64/opera/libffmpeg.so
+# Install Yarn
+sudo npm install --global yarn
 
-URL=`curl https://github.com/iteufel/nwjs-ffmpeg-prebuilt/releases/latest`
-FFMPEGVER=${URL%\"*}
-FFMPEGVER=${FFMPEGVER##*/}
-FFMPEGZIP=${FFMPEGVER}-linux-x64.zip
+# Remove unused
+sudo dnf autoremove
 
-curl -L -O https://github.com/iteufel/nwjs-ffmpeg-prebuilt/releases/download/${FFMPEGVER}/${FFMPEGZIP}
-unzip ${FFMPEGZIP}
-rm ${FFMPEGZIP}
-
-sudo mv libffmpeg.so /usr/lib64/libffmpeg_h264.so
-sudo ln -s /usr/lib64/libffmpeg_h264.so /usr/lib64/opera/libffmpeg.so
+# Firmware update
+sudo fwupdmgr get-devices
+sudo fwupdmgr refresh --force
+sudo fwupdmgr get-updates
+sudo fwupdmgr update
