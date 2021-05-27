@@ -1,7 +1,8 @@
 #
 # Install and setup custom Dvorak Pok3r layout
 #
-ln -s "$HOME/.dotfiles/keyboard/dp" "/usr/share/X11/xkb/symbols/dp"
+
+ln -s "$HOME/.dotfiles/install/keyboard/dp" "/usr/share/X11/xkb/symbols/dp"
 
 # @TODO: Modify /usr/share/X11/xkb/rules/base.lst
 # @TODO: Modify /usr/share/X11/xkb/rules/base.xml
