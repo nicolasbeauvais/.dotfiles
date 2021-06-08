@@ -5,7 +5,7 @@
 wget https://raw.githubusercontent.com/nicolasbeauvais/.dotfiles/master/clone.sh | bash
 ```
 
-### Ghost personal CLI
+### Ghost 'gst' personal CLI
 ```bash
-ghost
+gst
 ```

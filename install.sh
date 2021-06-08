@@ -2,6 +2,7 @@
 
 HOSTNAME=ghost
 
+
 print "\n\e[0;33mSystem setup\e[0m"
 
 # ---
@@ -157,6 +158,7 @@ sudo dnf install -qy \
      rclone \
      setroubleshoot \
      util-linux-user \
+     virtualenv \
      zsh
 
 # ---
@@ -176,9 +178,11 @@ flatpak install flathub -y \
 
 echo 'Install Ghost CLI...'
 
-pip install cement
-
-echo '========= @TODO: add ghost install script'
+(
+  cd "$HOME/.dotfiles/cli
+  && pip install -r requirements.txt
+  && pip install --editable ." || exit
+)
 
 # ---
 
@@ -213,7 +217,7 @@ echo 'Install Prezto...'
 git clone --recursive https://github.com/sorin-ionescu/prezto.git "$HOME/.zprezto"
 git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/belak/prezto-contrib "$HOME/.zprezto/contrib"
 
-for rcfile in "$HOME"/.dotfiles/files/prezto/runcoms/*(.); do
+for rcfile in "$HOME/.dotfiles/files/prezto/runcoms/*"; do
     ln -s "$rcfile" "$HOME/.${rcfile:t}"
 done
 
@@ -294,12 +298,27 @@ sudo systemctl enable fstrim.timer
 
 # ---
 
+print "\n\e[0;Files backup\e[0m"
+
+# ---
+
+echo 'Register twice-daily backup cron...'
+
+(crontab -l 2>/dev/null; echo "45 11,17 * * * gst backup:cloud") | crontab -
+
+
+# ---
+
 print "\n\e[0;Cleanup\e[0m"
+
+# ---
 
 rm -f "$HOME/.bash_history" \
    "$HOME/.bash_logout" \
    "$HOME/.bash_profile" \
    "$HOME/.bashrc" \
    "$HOME/clone.sh"
+
+# ---
 
 print "\n\e[0;Done\e[0m"
