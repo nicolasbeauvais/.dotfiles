@@ -131,7 +131,7 @@ echo 'Install DNF packages...'
 
 sudo dnf install -qy \
      1password \
-     cronie \
+     cronie-anacron \
      dconf \
      dconf-editor \
      dnf-plugins-core \
@@ -151,12 +151,14 @@ sudo dnf install -qy \
      nodejs \
      parallel \
      php-8.0.3 \
+     php-dbg \
      php-gd \
      php-zip \
      php-pecl-swoole \
      policycoreutils-gui \
      rclone \
      setroubleshoot \
+     telnet \
      util-linux-user \
      virtualenv \
      zsh
@@ -166,9 +168,7 @@ sudo dnf install -qy \
 echo 'Install Flatpack packages...'
 
 flatpak install flathub -y \
-    com.axosoft.GitKraken
     com.discordapp.Discord \
-    com.jetbrains.PhpStorm \
     org.signal.Signal \
     com.slack.Slack \
     com.spotify.Client \
@@ -258,6 +258,13 @@ ln -s "$HOME/.dotfiles/install/keyboard/dp" "/usr/share/X11/xkb/symbols/dp"
 
 # ---
 
+echo 'Install GitKraken'
+
+wget https://release.gitkraken.com/linux/gitkraken-amd64.rpm
+sudo dnf install ./gitkraken-amd64.rpm
+
+# ---
+
 echo 'DNF autoremove'
 
 sudo dnf -q autoremove
@@ -295,6 +302,12 @@ sudo systemctl enable mariadb
 echo 'Enable FSTrimTimer Service...'
 
 sudo systemctl enable fstrim.timer
+
+# ---
+
+echo 'Enable Crond Service...'
+
+sudo systemctl enable crond.service
 
 # ---
 
