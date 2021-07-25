@@ -22,10 +22,10 @@
 ;;(setq doom-font (font-spec :family "Jetbrains Mono" :size 16)
 ;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 14
 ;;                                          ))
-(setq doom-font (font-spec :family "Jetbrains Mono" :size 30)
-      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 16)
-      doom-unicode-font (font-spec :family "Fira Sans" :size 14)
-      doom-big-font (font-spec :family "Jetbrains Mono" :size 20))
+(setq doom-font (font-spec :family "Jetbrains Mono" :size 25)
+      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 14)
+      doom-unicode-font (font-spec :family "Fira Sans" :size 12)
+      doom-big-font (font-spec :family "Jetbrains Mono" :size 16))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
