@@ -143,8 +143,6 @@ sudo dnf install -qy \
      imagemagick \
      jetbrains-mono-fonts \
      jq \
-     kitty \
-     kitty-terminfo \
      mariadb \
      mariadb-server \
      mozilla-fira-sans-fonts \
@@ -239,9 +237,9 @@ chsh -s "$(which zsh)"
 
 # ---
 
-echo 'Setup Kitty...'
+echo 'Setup Terminal...'
 
-ln -s "$HOME/.dotfiles/files/kitty" "$HOME/.config/kitty"
+"$HOME/.dotefiles/files/terminal/setup.sh"
 
 # ---
 
@@ -315,10 +313,18 @@ print "\n\e[0;Files backup\e[0m"
 
 # ---
 
-echo 'Register twice-daily backup cron...'
+echo 'Create backup cron script...'
 
-(crontab -l 2>/dev/null; echo "45 11,17 * * * gst backup:cloud") | crontab -
 
+cat <<EOT >> /tmp/system_backup.sh
+# Run gst backup
+gst backup:nas
+EOT
+
+sudo mv /tmp/system_backup.sh /etc/cron.daily/system_backup.sh
+
+sudo chmod +x /etc/cron.daily/system_backup.sh
+sudo chown root:root /etc/cron.daily/system_backup.sh
 
 # ---
 
