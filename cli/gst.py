@@ -13,8 +13,7 @@ def cli():
 
 from backup import commands as backup
 
-cli.add_command(backup.backup_local)
-cli.add_command(backup.backup_cloud)
+cli.add_command(backup.backup_nas)
 
 
 # from work import commands as work

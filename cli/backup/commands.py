@@ -15,6 +15,8 @@ def create_backup_list():
 
     store_path = os.path.expanduser("~") + '/store/'
 
+    click.echo('\nBuild store list...')
+
     for dirpath, directories, files in os.walk(store_path, topdown=True):
         if '.git' in directories:
             os.chdir(dirpath)
@@ -39,65 +41,54 @@ def create_backup_list():
     backupList.close()
 
 
-def rclone_sync(destination):
+def rsync():
     try:
-        click.echo('Syncing store...')
+        start = time.time()
+
+        click.echo('\nSyncing store...')
 
         subprocess.check_output([
             'bash',
             '-c',
-            'rclone copy --files-from ~/store/backup-list.txt ~/{0} {1}:{0}'.format('store', destination)
+            'rsync --archive --delete --verbose --files-from={0} ~/store nasu:~/Backups/ghost/store'.format(os.path.expanduser("~") + '/store/backup-list.txt')
         ])
 
+        click.echo('Syncing Documents...')
 
-        for path in ['Documents', 'Pictures']:
-            click.echo('Syncing {}...'.format(path))
-            subprocess.check_output([
-                'bash',
-                '-c',
-                'rclone copy ~/{0} {1}:{0}'.format(path, destination)
-            ])
+        subprocess.check_output([
+            'bash',
+            '-c',
+            'rsync --archive --delete --verbose ~/Documents nasu:~/Backups/ghost'
+        ])
+
+        click.echo('Syncing Pictures...')
+
+        subprocess.check_output([
+            'bash',
+            '-c',
+            'rsync --archive --delete --verbose ~/Pictures nasu:~/Backups/ghost'
+        ])
+
+        notify('NAS backup performed in {:0.0f}s.'.format(time.time() - start))
     except subprocess.CalledProcessError as e:
-        notify('An error occured while performing a backup between: ~/{0} and {1}:{0}'.format(path, destination))
+        notify('An error occured while performing the backup')
         click.echo(e.output, err=True)
+
 
 
 def delete_backup_list():
     os.remove(os.path.expanduser("~") + '/store/backup-list.txt')
 
 
-@click.command('backup:local')
-@click.argument('media')
-def backup_local(media):
-    start = time.time()
 
-    if not os.path.isdir('/run/media/ghost/' + media):
-        return click.echo('Media {} is not connected.'.format(media), err=True)
-
-    click.echo(click.style('Starting local backup', fg='yellow', bold=True))
+@click.command('backup:nas')
+def backup_nas():
+    click.echo(click.style('Starting backup to NAS', fg='yellow', bold=True))
 
     create_backup_list()
 
-    rclone_sync('backup-ssd-crypt')
+    rsync()
 
     delete_backup_list()
 
-    notify('Local backup performed in {:0.0f}s.'.format(time.time() - start))
-    click.echo(click.style('Backup done!', fg='green'))
-
-
-@click.command('backup:cloud')
-def backup_cloud():
-    start = time.time()
-
-    click.echo(click.style('Starting cloud backup', fg='yellow', bold=True))
-
-    create_backup_list()
-
-    rclone_sync('backup-sw-crypt')
-
-    delete_backup_list()
-
-
-    notify('Cloud backup performed in {:0.0f}s.'.format(time.time() - start))
-    click.echo(click.style('Backup done!', fg='green'))
+    click.echo(click.style('\nBackup done!', fg='green'))
