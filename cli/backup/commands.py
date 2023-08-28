@@ -50,7 +50,7 @@ def rsync():
         subprocess.check_output([
             'bash',
             '-c',
-            'rsync --archive --delete --verbose --files-from={0} ~/store nasu:~/Backups/ghost/store'.format(os.path.expanduser("~") + '/store/backup-list.txt')
+            'rsync --archive --delete --verbose --files-from={0} ~/store nasu:Backups/ghost/store'.format(os.path.expanduser("~") + '/store/backup-list.txt')
         ])
 
         click.echo('Syncing Documents...')

@@ -130,7 +130,6 @@ sudo dnf upgrade --refresh -qy
 echo 'Install DNF packages...'
 
 sudo dnf install -qy \
-     1password \
      cronie-anacron \
      dconf \
      dconf-editor \
@@ -148,7 +147,7 @@ sudo dnf install -qy \
      mozilla-fira-sans-fonts \
      nodejs \
      parallel \
-     php-8.0.3 \
+     php-81 \
      php-dbg \
      php-gd \
      php-zip \
@@ -194,9 +193,9 @@ sudo mv composer.phar /usr/bin/composer
 
 # ---
 
-echo 'Install Yarn...'
+echo 'Enable Node corepack...'
 
-sudo npm install --global yarn
+sudo corepack enable
 
 # ---
 
