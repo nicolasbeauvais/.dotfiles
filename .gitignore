@@ -1,3 +1,5 @@
-cli/*.egg-info
-cli/venv
 cli/.env
+cli/.venv
+cli/gst.egg-info
+cli/build
+cli/dist
