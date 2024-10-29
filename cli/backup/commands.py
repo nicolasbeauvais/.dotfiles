@@ -13,27 +13,27 @@ def notify(message):
 def create_backup_list():
     archives = []
 
-    store_path = os.path.expanduser("~") + '/store/'
+    work_path = os.path.expanduser("~") + '/work/'
 
-    click.echo('\nBuild store list...')
+    click.echo('\nBuild work directory list...')
 
-    for dirpath, directories, files in os.walk(store_path, topdown=True):
+    for dirpath, directories, files in os.walk(work_path, topdown=True):
         if '.git' in directories:
             os.chdir(dirpath)
             # Create archive
             os.system(f'git archive -o {dirpath}.zip HEAD')
-            archives.append('{}.zip'.format(dirpath[len(store_path):]))
+            archives.append('{}.zip'.format(dirpath[len(work_path):]))
 
             # Ignore subdirectories
             directories[:] = []
 
         for file in files:
             if file.endswith('.zip'):
-                archives.append(f'{dirpath}/{file}'[len(store_path):])
+                archives.append(f'{dirpath}/{file}'[len(work_path):])
 
-    click.echo('Found {} archives in store'.format(len(archives)))
+    click.echo('Found {} archives in work directory'.format(len(archives)))
 
-    backupList = open(os.path.expanduser("~") + '/store/backup-list.txt','w')
+    backupList = open(os.path.expanduser("~") + '/work/backup-list.txt','w')
 
     for archive in archives:
         backupList.write(archive + '\n')
@@ -45,12 +45,12 @@ def rsync():
     try:
         start = time.time()
 
-        click.echo('\nSyncing store...')
+        click.echo('\nSyncing...')
 
         subprocess.check_output([
             'bash',
             '-c',
-            'rsync --archive --delete --verbose --files-from={0} ~/store nasu:Backups/ghost/store'.format(os.path.expanduser("~") + '/store/backup-list.txt')
+            'rsync --archive --delete --verbose --files-from={0} ~/work nasu:Backups/ghost/work'.format(os.path.expanduser("~") + '/work/backup-list.txt')
         ])
 
         click.echo('Syncing Documents...')
@@ -77,7 +77,7 @@ def rsync():
 
 
 def delete_backup_list():
-    os.remove(os.path.expanduser("~") + '/store/backup-list.txt')
+    os.remove(os.path.expanduser("~") + '/work/backup-list.txt')
 
 
 
