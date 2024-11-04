@@ -7,67 +7,70 @@ print "\n\e[0;33mSystem setup\e[0m"
 
 # ---
 
-echo 'Set hostname...'
+echo 'Set hostname'
 
 hostnamectl set-hostname "$HOSTNAME"
 
 # ---
 
-echo 'Optimize BTRFS filesystem...'
+echo 'Regenerate GRUB2 configuration'
 
-# https://mutschler.eu/linux/install-guides/fedora-post-install/#btrfs-filesystem-optimizations
-sudo sed -i '/\sbtrfs\s/s/\s0\s0$/,ssd,noatime,space_cache,commit=120,compress=zstd,discard=async 0 0/' /etc/fstab
-
-# ---
-
-echo 'Regenerate GRUB2 configuration...'
-
-sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
-
-# ---
-
-echo 'Configure DNS with CloudFlare 1.1.1.1...'
-
-sudo sed -i 's/#DNS=/DNS=1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001/' /etc/systemd/resolved.conf
-sudo sed -i 's/#DNSSEC=no/DNSSEC=true/' /etc/systemd/resolved.conf
-
-rm /etc/resolv.conf
-
-cat <<EOT >> /etc/resolv.conf
-# Original file symlink to ../run/systemd/resolve/stub-resolv.conf
-nameserver 1.0.0.1
-nameserver 1.1.1.1
-EOT
-
-service systemd-resolved restart
-
-# ---
-
-echo 'Optimize DNF...'
-
-# https://mutschler.eu/linux/install-guides/fedora-post-install/#dnf-flags
-echo 'fastestmirror=1' | sudo tee -a /etc/dnf/dnf.conf
-echo 'max_parallel_downloads=10' | sudo tee -a /etc/dnf/dnf.conf
-echo 'deltarpm=true' | sudo tee -a /etc/dnf/dnf.conf
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
 
 # ---
 
 print "\n\e[0;Packages setup\e[0m"
 
+
 # ---
 
-echo 'Uninstall unused packages...'
+echo 'Install DNF plugins core'
 
-# eog: Eye of Gnome
+sudo dnf install -y dnf-plugins-core
+
+# ---
+
+echo 'Import CloudFlare warp repository'
+
+curl -fsSl https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo | sudo tee /etc/yum.repos.d/cloudflare-warp.repo
+
+# ---
+
+echo "Import Remi's RPM repository"
+
+sudo dnf install https://rpms.remirepo.net/fedora/remi-release-41.rpm
+sudo rpm --import "/etc/pki/rpm-gpg/RPM-GPG-KEY-remi-$(rpm -E %fedora)"
+
+# ---
+
+echo "Import Hashicorp repository"
+
+sudo dnf config-manager addrepo --from-repofile=https://rpm.releases.hashicorp.com/fedora/hashicorp.repo
+
+# ---
+
+echo "Import Stripe repository"
+
+sudo echo -e "[Stripe]\nname=stripe\nbaseurl=https://packages.stripe.dev/stripe-cli-rpm-local/\nenabled=1\ngpgcheck=0" >> /etc/yum.repos.d/stripe.repo
+
+# ---
+
+echo 'Install Flathub'
+
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# ---
+
+echo 'Uninstall unused packages'
+
+# eog: Eye of Gnome image viewer
 # evince: Document viewer
 # simple-scan: Document scanner
 # totem: ideos
 sudo dnf remove -qy \
     eog \
     evince \
-    firefox \
     gedit \
-    gnome-boxes \
     gnome-calculator \
     gnome-calendar \
     gnome-characters \
@@ -85,180 +88,90 @@ sudo dnf remove -qy \
     gnome-weather \
     ibus-anthy \
     'libreoffice-*' \
+    ptyxis \
     rhythmbox \
     simple-scan \
     totem
 
 # ---
 
-echo 'Install RPM Fusion...'
-
-sudo dnf install -qy \
-    "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
-    "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm"
-
-# ---
-
-echo 'Install Flathub...'
-
-sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-# ---
-
-echo "Install Remi's RPM repository..."
-
-sudo dnf install -y "https://rpms.remirepo.net/fedora/remi-release-$(rpm -E %fedora).rpm"
-sudo dnf config-manager --set-enabled remi
-sudo dnf config-manager --set-enabled remi-php80
-sudo dnf config-manager --set-disabled remi-modular
-sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi
-sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi2017
-sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi2018
-sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi2019
-sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi2020
-sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi2021
-sudo rpm --import "/etc/pki/rpm-gpg/RPM-GPG-KEY-remi-$(rpm -E %fedora)"
-
-# ---
-
-echo 'Upgrade DNF...'
+echo 'Upgrade DNF'
 
 sudo dnf upgrade --refresh -qy
 
 # ---
 
-echo 'Install DNF packages...'
+echo 'Install DNF packages'
 
 sudo dnf install -qy \
-     cronie-anacron \
+     cloudflare-warp
+     crontabs \
      dconf \
      dconf-editor \
-     dnf-plugins-core \
      docker \
      docker-compose \
-     emacs \
      ffmpeg \
-     gnome-tweak-tool \
-     imagemagick \
+     fish \
+     gnome-console \
      jetbrains-mono-fonts \
      jq \
-     mariadb \
-     mariadb-server \
-     mozilla-fira-sans-fonts \
+     make \
      nodejs \
-     parallel \
-     php-81 \
+     php-cli \
+     php83 \
      php-dbg \
      php-gd \
+     php-mbstring \
+     php-xml \
      php-zip \
-     php-pecl-swoole \
-     policycoreutils-gui \
+     pip \
      rclone \
      setroubleshoot \
-     telnet \
+     terraform \
      util-linux-user \
-     virtualenv \
-     zsh
+     zoxide
 
 # ---
 
-echo 'Install Flatpack packages...'
+echo 'Install Ghost CLI'
 
-flatpak install flathub -y \
-    com.discordapp.Discord \
-    org.signal.Signal \
-    com.slack.Slack \
-    com.spotify.Client \
-    io.exodus.Exodus
+(cd "$HOME/.dotfiles/cli" && pip install -r requirements.txt && pip install --editable . || exit)
 
 # ---
 
-echo 'Install Ghost CLI...'
-
-(
-  cd "$HOME/.dotfiles/cli
-  && pip install -r requirements.txt
-  && pip install --editable ." || exit
-)
-
-# ---
-
-echo 'Install Composer...'
+echo 'Install Composer'
 
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 php composer-setup.php
 php -r "unlink('composer-setup.php');"
 sudo mv composer.phar /usr/bin/composer
 
+# ---
+
+echo 'Install pyenv'
+
+curl https://pyenv.run | bash
 
 # ---
 
-echo 'Enable Node corepack...'
+echo 'Install starship prompt'
 
-sudo corepack enable
+curl -sS https://starship.rs/install.sh | sh
 
-# ---
-
-echo 'Install Emacs DOOM...'
-
-git clone --depth 1 https://github.com/hlissner/doom-emacs "$HOME/.emacs.d"
-
-ln -s "$HOME/.dotfiles/files/.doom.d" "$HOME/.doom.d"
-
-"$HOME/.emacs.d/bin/doom install"
+ln -s "$HOME/.dotfiles/files/starship.toml" "$HOME/.config/starship.toml"
 
 # ---
 
-echo 'Install Prezto...'
+echo 'Set Fish as default shell'
 
-git clone --recursive https://github.com/sorin-ionescu/prezto.git "$HOME/.zprezto"
-git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/belak/prezto-contrib "$HOME/.zprezto/contrib"
-
-for rcfile in "$HOME/.dotfiles/files/prezto/runcoms/*"; do
-    ln -s "$rcfile" "$HOME/.${rcfile:t}"
-done
-
-for module in "$HOME"/.dotfiles/files/prezto/modules/*; do
-    ln -s "$module" "$HOME/.zprezto/modules/${module:t}"
-done
+chsh -s /usr/bin/fish
 
 # ---
 
-echo 'Remove invalid which2 profile...'
+echo 'Symlink Fish configuration'
 
-sudo rm /etc/profile.d/which2.sh
-
-# ---
-
-echo 'Set ZSH as default shell...'
-
-chsh -s "$(which zsh)"
-
-# ---
-
-echo 'Setup Terminal...'
-
-"$HOME/.dotefiles/files/terminal/setup.sh"
-
-# ---
-
-echo 'Setup custom keyboard layout...'
-
-ln -s "$HOME/.dotfiles/install/keyboard/dp" "/usr/share/X11/xkb/symbols/dp"
-
-# @TODO: Modify /usr/share/X11/xkb/rules/base.lst
-# @TODO: Modify /usr/share/X11/xkb/rules/base.xml
-# @TODO: Modify /usr/share/X11/xkb/rules/evdev.lst
-# @TODO: Modify /usr/share/X11/xkb/rules/evdev.xml
-
-# @TODO: Set as default keyboard
-
-# ---
-
-echo 'Install GitKraken'
-
-wget https://release.gitkraken.com/linux/gitkraken-amd64.rpm
-sudo dnf install ./gitkraken-amd64.rpm
+rm -rf "$HOME/.config/fish"
+ln -s "$HOME/.dotfiles/files/fish" "$HOME/.config/fish"
 
 # ---
 
@@ -286,13 +199,6 @@ echo 'Enable Docker Service...'
 sudo groupadd docker
 sudo usermod -aG docker $USER
 sudo systemctl enable docker
-
-# ---
-
-echo 'Enable MariaDB Service...'
-
-sudo mysql_secure_installation
-sudo systemctl enable mariadb
 
 # ---
 
@@ -327,15 +233,49 @@ sudo chown root:root /etc/cron.daily/system_backup.sh
 
 # ---
 
+echo 'Install AWS CLI'
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf aws/ awscliv2.zip
+
+# ---
+
+echo 'Configure Cloudflare warp'
+
+warp-cli registration new
+warp-cli connect
+warp-cli mode warp+doh
+
+# ---
+
+echo 'Configure Gnome'
+
+cat dconf-settings.ini | dconf load /
+
+# ---
+
+echo 'Symlink wallpaper directory'
+
+ln -s "$HOME/.dotfiles/files/wallpapers" "$HOME/Pictures/wallpapers"
+
+# ---
+
 print "\n\e[0;Cleanup\e[0m"
 
 # ---
 
-rm -f "$HOME/.bash_history" \
+rm -rf "$HOME/.bash_history" \
    "$HOME/.bash_logout" \
    "$HOME/.bash_profile" \
    "$HOME/.bashrc" \
-   "$HOME/clone.sh"
+   "$HOME/clone.sh" \
+   "$HOME/Desktop" \
+   "$HOME/Public" \
+   "$HOME/Templates"
+
+sudo dnf remove
 
 # ---
 
