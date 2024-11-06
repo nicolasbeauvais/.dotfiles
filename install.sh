@@ -108,8 +108,6 @@ sudo dnf install -qy \
      crontabs \
      dconf \
      dconf-editor \
-     docker \
-     docker-compose \
      ffmpeg \
      fish \
      gnome-console \
@@ -195,14 +193,6 @@ sudo fwupdmgr update
 # ---
 
 print "\n\e[0;Services setup\e[0m"
-
-# ---
-
-echo 'Enable Docker Service...'
-
-sudo groupadd docker
-sudo usermod -aG docker $USER
-sudo systemctl enable docker
 
 # ---
 
