@@ -119,9 +119,13 @@ sudo dnf install -qy \
      nodejs \
      php-cli \
      php83 \
+     php-bcmath \
      php-dbg \
      php-gd \
      php-mbstring \
+     php-mysqlnd \
+     php-pdo \
+     php-process \
      php-xml \
      php-zip \
      pip \
