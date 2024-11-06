@@ -108,6 +108,7 @@ sudo dnf install -qy \
      crontabs \
      dconf \
      dconf-editor \
+     fastfetch \
      ffmpeg \
      fish \
      gnome-console \
