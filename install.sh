@@ -112,6 +112,7 @@ sudo dnf install -qy \
      ffmpeg \
      fish \
      gnome-console \
+     golang \
      jetbrains-mono-fonts \
      jq \
      make \
