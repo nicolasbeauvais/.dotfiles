@@ -2,12 +2,12 @@ import os
 import subprocess
 import click
 import time
-from slack_webhook import Slack
+import notify2
 
-
-def notify(message):
-    slack = Slack(url=os.getenv('SLACK_HOOK') + '2Xq4uq9Lw5KtxWI8g0kNfMfv')
-    slack.post(text=message)
+def notify(title, description, urgency=notify2.URGENCY_NORMAL):
+    notify2.init('Ghost CLI')
+    notification = notify2.Notification(title, description)
+    notification.show()
 
 
 def create_backup_list():
@@ -15,7 +15,7 @@ def create_backup_list():
 
     work_path = os.path.expanduser("~") + '/work/'
 
-    click.echo('\nBuild work directory list...')
+    click.echo('\nBuild work list... ', nl=False)
 
     for dirpath, directories, files in os.walk(work_path, topdown=True):
         if '.git' in directories:
@@ -31,7 +31,7 @@ def create_backup_list():
             if file.endswith('.zip'):
                 archives.append(f'{dirpath}/{file}'[len(work_path):])
 
-    click.echo('Found {} archives in work directory'.format(len(archives)))
+    click.echo(click.style('Done', fg='green'))
 
     backupList = open(os.path.expanduser("~") + '/work/backup-list.txt','w')
 
@@ -40,12 +40,12 @@ def create_backup_list():
 
     backupList.close()
 
+    return len(archives)
+
 
 def rsync():
     try:
-        start = time.time()
-
-        click.echo('\nSyncing...')
+        click.echo('Syncing work... ', nl=False)
 
         subprocess.check_output([
             'bash',
@@ -53,7 +53,9 @@ def rsync():
             'rsync --archive --delete --verbose --files-from={0} ~/work nasu:Backups/ghost/work'.format(os.path.expanduser("~") + '/work/backup-list.txt')
         ])
 
-        click.echo('Syncing Documents...')
+        click.echo(click.style('Done', fg='green'))
+
+        click.echo('Syncing Documents... ', nl=False)
 
         subprocess.check_output([
             'bash',
@@ -61,7 +63,9 @@ def rsync():
             'rsync --archive --delete --verbose ~/Documents nasu:~/Backups/ghost'
         ])
 
-        click.echo('Syncing Pictures...')
+        click.echo(click.style('Done', fg='green'))
+
+        click.echo('Syncing Pictures...', nl=False)
 
         subprocess.check_output([
             'bash',
@@ -69,11 +73,11 @@ def rsync():
             'rsync --archive --delete --verbose ~/Pictures nasu:~/Backups/ghost'
         ])
 
-        notify('NAS backup performed in {:0.0f}s.'.format(time.time() - start))
-    except subprocess.CalledProcessError as e:
-        notify('An error occured while performing the backup')
-        click.echo(e.output, err=True)
+        click.echo(click.style('Done', fg='green'))
 
+        return True
+    except subprocess.CalledProcessError as e:
+        return e
 
 
 def delete_backup_list():
@@ -83,12 +87,22 @@ def delete_backup_list():
 
 @click.command('backup:nas')
 def backup_nas():
-    click.echo(click.style('Starting backup to NAS', fg='yellow', bold=True))
 
-    create_backup_list()
+    click.echo(click.style('\nStarting Ghost backup', bold=True, ))
 
-    rsync()
+    start = time.time()
+
+    archives = create_backup_list()
+
+    status = rsync()
+
+    completion = time.time() - start
+
+    if status is True:
+        notify('Ghost backup completed', 'Synced {} archives in {:.2f} seconds'.format(archives, completion))
+        click.echo(click.style('\nBackup completed successfully synced {} archives in {:.2f} seconds'.format(archives, completion), fg='green', bold=True))
+    else:
+        notify('Ghost backup error', 'An error occurred while performing the backup: {}'.format(status), urgency=notify2.URGENCY_CRITICAL)
+        click.echo(click.style('\nBackup failed with error: {}'.format(status), fg='red', bold=True), err=True)
 
     delete_backup_list()
-
-    click.echo(click.style('\nBackup done!', fg='green'))
