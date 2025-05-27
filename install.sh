@@ -124,6 +124,7 @@ sudo dnf install -qy \
      php-gd \
      php-mbstring \
      php-mysqlnd \
+     php-opcache \
      php-pdo \
      php-process \
      php-xml \
